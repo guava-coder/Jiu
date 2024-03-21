@@ -17,11 +17,10 @@ func (e Example) init() {
 
 	users := db.GetUserStorage()
 
-	userController := controller.NewUserController(
+	controller.NewUserController(
 		mux,
 		user.NewUserSerivice(user.NewUserRepository(users)),
-	)
-	userController.Run()
+	).Run()
 
 	port := 8080
 	fmt.Printf("Server started on localhost:%d\n", port)

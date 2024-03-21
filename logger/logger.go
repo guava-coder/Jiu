@@ -7,13 +7,13 @@ import (
 	"github.com/fatih/color"
 )
 
-func Println(url string, request func()) {
+func PrintlnLatesy(url string, request func() int) {
 	start := time.Now()
 	fmt.Println(start)
 
-	request()
+	code := request()
 
 	printGet := color.New(color.FgGreen).PrintfFunc()
-	printGet("%s |---> %s", url, time.Since(start))
+	printGet("%s %d |---> %s", url, code, time.Since(start))
 	fmt.Println()
 }

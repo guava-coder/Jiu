@@ -1,18 +1,29 @@
 package controller
 
 import (
-	logger "guavacoder/jiu/logger"
-	. "guavacoder/jiu/user"
+	"fmt"
+	user "guavacoder/jiu/user"
 	"net/http"
+
+	lg "guavacoder/jiu/logger"
 )
 
 type UserController struct {
-	service UserService
+	service user.UserService
 	mux     *http.ServeMux
+	prefix  string
 }
 
-func NewUserController(mux *http.ServeMux, service UserService) UserController {
-	return UserController{service: service, mux: mux}
+func NewUserController(mux *http.ServeMux, service user.UserService) UserController {
+	return UserController{
+		service: service,
+		mux:     mux,
+		prefix:  "/user/",
+	}
+}
+
+func (c UserController) Get(suffix string) string {
+	return fmt.Sprintf("GET %s%s", c.prefix, suffix)
 }
 
 func (c UserController) Run() {
@@ -20,11 +31,8 @@ func (c UserController) Run() {
 }
 
 func (c UserController) getUsers() {
-	url := "GET /users"
+	url := c.Get("all")
 	c.mux.HandleFunc(url, func(w http.ResponseWriter, r *http.Request) {
-		req := func() {
-			c.service.GetUsers(w, r)
-		}
-		logger.Println(url, req)
+		lg.PrintlnLatesy(url, func() int { return c.service.GetUsers(w, r) })
 	})
 }
