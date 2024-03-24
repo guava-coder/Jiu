@@ -20,26 +20,27 @@ func logResponseBody(res *http.Response, t *testing.T) {
 	t.Log(string(value))
 }
 
-func TestGetUsers(t *testing.T) {
-	res, err := http.Get("http://127.0.0.1:8080/user/all")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
+func TestUserController(t *testing.T) {
+	t.Run("test get users", func(t *testing.T) {
+		res, err := http.Get("http://127.0.0.1:8080/user/all")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
 
-	assertStatusNotOk(res, t)
+		assertStatusNotOk(res, t)
 
-	logResponseBody(res, t)
-}
+		logResponseBody(res, t)
+	})
+	t.Run("test get user by conditions", func(t *testing.T) {
+		res, err := http.Get("http://127.0.0.1:8080/user?name=John&email=j@j.com")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
 
-func TestGetUserByConditions(t *testing.T) {
-	res, err := http.Get("http://127.0.0.1:8080/user?name=John&email=j@j.com")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
+		assertStatusNotOk(res, t)
 
-	assertStatusNotOk(res, t)
-
-	logResponseBody(res, t)
+		logResponseBody(res, t)
+	})
 }
