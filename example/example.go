@@ -1,18 +1,16 @@
-package main
+package example
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	controller "guavacoder/jiu/controller"
-	db "guavacoder/jiu/db"
-	user "guavacoder/jiu/user"
+	controller "guavacoder/jiu/example/controller"
+	db "guavacoder/jiu/example/db"
+	user "guavacoder/jiu/example/user"
 )
 
-type Example struct{}
-
-func (e Example) init() {
+func Init() {
 	mux := http.NewServeMux()
 
 	users := db.GetUserStorage()

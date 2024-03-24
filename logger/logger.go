@@ -14,6 +14,6 @@ func PrintlnLatesy(url string, request func() int) {
 	code := request()
 
 	printGet := color.New(color.FgGreen).PrintfFunc()
-	printGet("%s %d |---> %s", url, code, time.Since(start))
+	printGet("%s | %d |---> %s", url, code, time.Since(start))
 	fmt.Println()
 }

@@ -1,6 +1,9 @@
 package main
 
+import (
+	ex "guavacoder/jiu/example"
+)
+
 func main() {
-	var example Example
-	example.init()
+	ex.Init()
 }

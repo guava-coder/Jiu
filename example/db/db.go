@@ -1,7 +1,7 @@
 package db
 
 import (
-	. "guavacoder/jiu/data"
+	. "guavacoder/jiu/example/data"
 )
 
 func GetUserStorage() []User {

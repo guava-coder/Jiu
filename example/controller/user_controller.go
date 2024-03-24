@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	user "guavacoder/jiu/user"
+	user "guavacoder/jiu/example/user"
 	"net/http"
 
 	lg "guavacoder/jiu/logger"
@@ -22,17 +22,21 @@ func NewUserController(mux *http.ServeMux, service user.UserService) UserControl
 	}
 }
 
-func (c UserController) Get(suffix string) string {
-	return fmt.Sprintf("GET %s%s", c.prefix, suffix)
-}
-
 func (c UserController) Run() {
 	c.getUsers()
+	c.getUserByConditions()
 }
 
 func (c UserController) getUsers() {
-	url := c.Get("all")
+	url := fmt.Sprintf("GET %s%s", c.prefix, "all")
 	c.mux.HandleFunc(url, func(w http.ResponseWriter, r *http.Request) {
 		lg.PrintlnLatesy(url, func() int { return c.service.GetUsers(w, r) })
+	})
+}
+
+func (c UserController) getUserByConditions() {
+	url := fmt.Sprintf("GET %s", c.prefix)
+	c.mux.HandleFunc(url, func(w http.ResponseWriter, r *http.Request) {
+		lg.PrintlnLatesy(url, func() int { return c.service.GetUserByConditions(w, r) })
 	})
 }
