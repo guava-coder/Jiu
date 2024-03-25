@@ -7,7 +7,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func PrintlnLatesy(url string, request func() int) {
+func PrintlnLatency(url string, request func() int) {
 	start := time.Now()
 	fmt.Println(start)
 

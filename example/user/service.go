@@ -1,7 +1,6 @@
 package user
 
 import (
-	"encoding/json"
 	to "guavacoder/jiu/tools"
 	"net/http"
 )
@@ -14,21 +13,10 @@ func NewUserSerivice(r *UserRepository) UserService {
 	return UserService{repo: r}
 }
 
-func handleJsonMarshal(obj interface{}) (statusCode int, response []byte) {
-	res, err := json.Marshal(obj)
-
-	if err == nil {
-		return http.StatusOK, res
-	} else {
-		return to.JiuInternalServerError(err)
-	}
-}
-
 func (serv UserService) GetUsers(w http.ResponseWriter, r *http.Request) (statusCode int) {
 	users := serv.repo.GetUsers()
 
-	var response []byte
-	statusCode, response = handleJsonMarshal(users)
+	statusCode, response := to.HandleJsonMarshal(users)
 
 	to.WriteJsonResponse(w, to.Response{StatusCode: statusCode, Body: response})
 	return
@@ -41,8 +29,7 @@ func (serv UserService) GetUserByConditions(w http.ResponseWriter, r *http.Reque
 		params.Get("email"),
 	)
 
-	var response []byte
-	statusCode, response = handleJsonMarshal(users)
+	statusCode, response := to.HandleJsonMarshal(users)
 
 	to.WriteJsonResponse(w, to.Response{StatusCode: statusCode, Body: response})
 	return

@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -32,4 +33,14 @@ func ParseUrlParams(urlStr string) (url.Values, error) {
 	}
 	params, err := url.ParseQuery(value.RawQuery)
 	return params, err
+}
+
+func HandleJsonMarshal(obj interface{}) (statusCode int, response []byte) {
+	res, err := json.Marshal(obj)
+
+	if err == nil {
+		return http.StatusOK, res
+	} else {
+		return JiuInternalServerError(err)
+	}
 }

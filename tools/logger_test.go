@@ -5,11 +5,14 @@ import (
 	"testing"
 )
 
-func TestPrintlnLatesy(t *testing.T) {
-	PrintlnLatesy("test", func() int {
-		for i := 0; i < 100; i++ {
-			fmt.Print(i)
-		}
-		return 200
+func TestLogger(t *testing.T) {
+	t.Run("test print line latency", func(t *testing.T) {
+		PrintlnLatency("test", func() int {
+			for i := 0; i < 100; i++ {
+				fmt.Print(i)
+			}
+			return 200
+		})
+
 	})
 }

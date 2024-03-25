@@ -1,8 +1,10 @@
 package db
 
 import (
-	. "guavacoder/jiu/example/data"
+	user "guavacoder/jiu/example/user"
 )
+
+type User = user.User
 
 func GetUserStorage() []User {
 	users := make([]User, 0)

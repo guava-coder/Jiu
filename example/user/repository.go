@@ -1,8 +1,10 @@
 package user
 
-import (
-	. "guavacoder/jiu/example/data"
-)
+type User struct {
+	Id    int
+	Name  string
+	Email string
+}
 
 type UserRepository struct {
 	users []User
