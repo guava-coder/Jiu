@@ -7,6 +7,11 @@ import (
 	"github.com/fatih/color"
 )
 
+// PrintlnLatency prints the latency of a request to the specified URL.
+//
+// Parameters:
+// - url: the URL to send the request to.
+// - request: a function that performs the request and returns the status code.
 func PrintlnLatency(url string, request func() int) {
 	start := time.Now()
 	fmt.Println(start)

@@ -13,12 +13,23 @@ func NewUserSerivice(r *UserRepository) UserService {
 	return UserService{repo: r}
 }
 
+type Response struct {
+	StatusCode int
+	Body       []byte
+}
+
+func (serv UserService) response(w http.ResponseWriter, users []User) {
+	statusCode, response := to.HandleJsonMarshal(users)
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write(response)
+}
+
 func (serv UserService) GetUsers(w http.ResponseWriter, r *http.Request) (statusCode int) {
 	users := serv.repo.GetUsers()
 
-	statusCode, response := to.HandleJsonMarshal(users)
-
-	to.WriteJsonResponse(w, to.Response{StatusCode: statusCode, Body: response})
+	serv.response(w, users)
 	return
 }
 
@@ -29,8 +40,6 @@ func (serv UserService) GetUserByConditions(w http.ResponseWriter, r *http.Reque
 		params.Get("email"),
 	)
 
-	statusCode, response := to.HandleJsonMarshal(users)
-
-	to.WriteJsonResponse(w, to.Response{StatusCode: statusCode, Body: response})
+	serv.response(w, users)
 	return
 }

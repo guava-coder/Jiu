@@ -2,30 +2,12 @@ package tools
 
 import (
 	"encoding/json"
-	"fmt"
-	"net/http"
 	"net/url"
 )
 
-type Response struct {
-	StatusCode int
-	Body       []byte
-}
-
-func WriteJsonResponse(w http.ResponseWriter, res Response) {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(res.StatusCode)
-	w.Write(res.Body)
-}
-
-func JiuInternalServerError(err error) (statusCode int, response []byte) {
-	if err != nil {
-		statusCode = http.StatusInternalServerError
-		response = []byte(fmt.Sprintf("{Error: %s}", err))
-	}
-	return
-}
-
+// ParseUrlParams parses the URL parameters from the given URL string.
+//
+// It takes a URL string as a parameter and returns the parsed URL values and an error.
 func ParseUrlParams(urlStr string) (url.Values, error) {
 	value, err := url.Parse(urlStr)
 	if err != nil {
@@ -35,12 +17,14 @@ func ParseUrlParams(urlStr string) (url.Values, error) {
 	return params, err
 }
 
-func HandleJsonMarshal(obj interface{}) (statusCode int, response []byte) {
+// HandleJsonMarshal handles the JSON marshaling of the given object.
+//
+// It takes an interface{} object as a parameter and returns the HTTP status code and the response byte array.
+// The function marshals the object into JSON using the json.Marshal function. If the marshaling is successful,
+// it returns the status code http.StatusOK and the marshaled object as a byte array. If there is an error during
+// marshaling, it returns http.StatusInternalServerError and an error message as a byte array.
+func HandleJsonMarshal(obj interface{}) (int, []byte) {
 	res, err := json.Marshal(obj)
 
-	if err == nil {
-		return http.StatusOK, res
-	} else {
-		return JiuInternalServerError(err)
-	}
+	return CheckInternalServerError(err, res)
 }
