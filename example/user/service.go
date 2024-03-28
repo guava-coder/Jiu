@@ -7,7 +7,8 @@ import (
 )
 
 type UserService struct {
-	repo *UserRepository
+	repo           *UserRepository
+	responseWriter http.ResponseWriter
 }
 
 func NewUserSerivice(r *UserRepository) UserService {
@@ -19,41 +20,57 @@ type Response struct {
 	Body       []byte
 }
 
-func (serv UserService) printUserJson(w http.ResponseWriter, users []User) (statusCode int) {
+func (serv UserService) printUserJson(users []User) (statusCode int) {
 	statusCode, response := to.MustHandleJsonMarshal(users)
 
-	serv.printJsonResponse(w, statusCode, response)
+	serv.printJsonResponse(statusCode, response)
 	return
 }
 
-func (serv UserService) printError(w http.ResponseWriter, statusCode int, err error) {
-	serv.printJsonResponse(w, statusCode, []byte(fmt.Sprintf("{Error: %s}", err.Error())))
+func (serv UserService) printError(statusCode int, err error) {
+	serv.printJsonResponse(statusCode, []byte(fmt.Sprintf("{Error: %s}", err.Error())))
 }
 
-func (serv UserService) printJsonResponse(w http.ResponseWriter, statusCode int, response []byte) {
+func (serv UserService) printJsonResponse(statusCode int, response []byte) {
+	w := serv.responseWriter
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(response)
 }
 
 func (serv UserService) GetUsers(w http.ResponseWriter, r *http.Request) (statusCode int) {
-	users := serv.repo.GetUsers()
-
-	serv.printUserJson(w, users)
+	serv.responseWriter = w
+	users, err := serv.repo.GetUsers()
+	if err == nil {
+		statusCode = http.StatusNoContent
+		serv.printError(statusCode, err)
+	} else {
+		statusCode = serv.printUserJson(users)
+	}
 	return
 }
 
 func (serv UserService) GetUserByConditions(w http.ResponseWriter, r *http.Request) (statusCode int) {
+	serv.responseWriter = w
 	params, err := to.ParseUrlParams(r.URL.String())
-	if err == nil {
-		users := serv.repo.GetUserByConditions(
+
+	handleConditions := func() {
+		users, err := serv.repo.GetUserByConditions(
 			params.Get("name"),
 			params.Get("email"),
 		)
-		statusCode = serv.printUserJson(w, users)
+		if err == nil {
+			statusCode = serv.printUserJson(users)
+		} else {
+			statusCode = http.StatusNoContent
+			serv.printError(statusCode, err)
+		}
+	}
+	if err == nil {
+		handleConditions()
 	} else {
 		statusCode = http.StatusInternalServerError
-		serv.printError(w, statusCode, err)
+		serv.printError(statusCode, err)
 	}
 	return
 }
