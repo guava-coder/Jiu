@@ -2,6 +2,8 @@ package tools
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -23,8 +25,12 @@ func ParseUrlParams(urlStr string) (url.Values, error) {
 // The function marshals the object into JSON using the json.Marshal function. If the marshaling is successful,
 // it returns the status code http.StatusOK and the marshaled object as a byte array. If there is an error during
 // marshaling, it returns http.StatusInternalServerError and an error message as a byte array.
-func HandleJsonMarshal(obj interface{}) (int, []byte) {
+func MustHandleJsonMarshal(obj interface{}) (statusCode int, response []byte) {
 	res, err := json.Marshal(obj)
-
-	return CheckInternalServerError(err, res)
+	if err == nil {
+		statusCode, response = http.StatusOK, res
+	} else {
+		statusCode, response = http.StatusInternalServerError, []byte(fmt.Sprintf("{Error: %s}", err.Error()))
+	}
+	return
 }

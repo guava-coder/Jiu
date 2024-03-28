@@ -12,15 +12,15 @@ type Obj struct {
 }
 
 func TestHandler(t *testing.T) {
-
+	url := "http://test.com/user?name=John&email=j@j.com"
 	t.Run("test parse url params", func(t *testing.T) {
-		_, err := ParseUrlParams("http://127.0.0.1:8080/user?name=John&email=j@j.com")
+		_, err := ParseUrlParams(url)
 		if err != nil {
 			t.Fatal(err)
 		}
 	})
 	t.Run("test handle json marshal", func(t *testing.T) {
-		statusCode, response := HandleJsonMarshal(Obj{
+		statusCode, response := MustHandleJsonMarshal(Obj{
 			Id:    1,
 			Name:  "John",
 			Email: "j@j.com",
