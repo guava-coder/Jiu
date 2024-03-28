@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"testing"
@@ -31,6 +32,18 @@ func TestUserController(t *testing.T) {
 	})
 	t.Run("test get user by id", func(t *testing.T) {
 		res, err := http.Get("http://127.0.0.1:8080/user/1")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
+
+		assertStatusOk(res, t)
+
+		logResponseBody(res, t)
+	})
+	t.Run("test add user", func(t *testing.T) {
+		data := []byte(`{"Name":"John","Email":"j@j.com"}`)
+		res, err := http.Post("http://127.0.0.1:8080/user/add", "application/json", bytes.NewBuffer(data))
 		if err != nil {
 			t.Fatal(err)
 		}

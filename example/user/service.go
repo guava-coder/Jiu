@@ -1,9 +1,12 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	to "guavacoder/jiu/tools"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -85,7 +88,34 @@ func (serv UserService) GetUserById(w http.ResponseWriter, r *http.Request) (sta
 		statusCode = serv.printUserJson([]User{user})
 	} else {
 		statusCode = http.StatusNotFound
-		serv.printError(statusCode, err)
+		http.Error(w, err.Error(), statusCode)
+	}
+	return
+}
+
+func (serv UserService) AddUser(w http.ResponseWriter, r *http.Request) (statusCode int) {
+	serv.responseWriter = w
+
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+
+	handleAdd := func() {
+		user.Id = uuid.New().String()
+		err := serv.repo.AddUser(user)
+		if err == nil {
+			statusCode = http.StatusOK
+			serv.printJsonResponse(statusCode, []byte("User added successfully"))
+		} else {
+			statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), statusCode)
+		}
+	}
+
+	if err == nil {
+		handleAdd()
+	} else {
+		statusCode = http.StatusInternalServerError
+		http.Error(w, err.Error(), statusCode)
 	}
 	return
 }
