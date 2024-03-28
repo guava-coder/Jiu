@@ -1,23 +1,9 @@
 package user
 
-import "errors"
-
 type User struct {
 	Id    string
 	Name  string
 	Email string
-}
-
-type UserQueryError struct {
-	UserNotFound error
-	UserExist    error
-}
-
-func NewUserQueryError() UserQueryError {
-	return UserQueryError{
-		UserNotFound: errors.New("no user founded"),
-		UserExist:    errors.New("user already exist"),
-	}
 }
 
 type UserRepository struct {
@@ -35,7 +21,7 @@ func (r UserRepository) GetUsers() (users []User, err error) {
 		users = append(users, v)
 	}
 	if len(users) == 0 {
-		_, err = users, NewUserQueryError().UserNotFound
+		_, err = users, NewQueryError(User{}).UserNotFound
 	} else {
 		_, err = users, nil
 	}
@@ -44,7 +30,7 @@ func (r UserRepository) GetUsers() (users []User, err error) {
 
 func (r UserRepository) GetUserById(id string) (user User, err error) {
 	if r.users[id].Id == "" {
-		user, err = User{}, NewUserQueryError().UserNotFound
+		user, err = User{}, NewQueryError(User{Id: id}).UserNotExist
 	} else {
 		user, err = r.users[id], nil
 	}
@@ -58,7 +44,7 @@ func (r UserRepository) GetUserByConditions(name string, email string) (users []
 		}
 	}
 	if len(users) == 0 {
-		_, err = users, NewUserQueryError().UserNotFound
+		_, err = users, NewQueryError(User{}).UserNotFound
 	} else {
 		_, err = users, nil
 	}
@@ -70,7 +56,29 @@ func (r UserRepository) AddUser(u User) (err error) {
 		r.users[u.Id] = u
 		err = nil
 	} else {
-		err = NewUserQueryError().UserExist
+		err = NewQueryError(u).UserExist
+	}
+	return
+}
+
+func (r UserRepository) UpdateUser(data []User) (err error) {
+	for _, v := range data {
+		if r.users[v.Id].Id == "" {
+			err = NewQueryError(User{Id: v.Id}).UserNotExist
+			return
+		} else {
+			r.users[v.Id] = v
+		}
+	}
+	return
+}
+
+func (r UserRepository) DeleteUser(id string) (err error) {
+	if r.users[id].Id == "" {
+		err = NewQueryError(User{Id: id}).UserNotExist
+	} else {
+		delete(r.users, id)
+		err = nil
 	}
 	return
 }

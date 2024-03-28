@@ -50,4 +50,27 @@ func TestUserRepository(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+	t.Run("update user", func(t *testing.T) {
+		err := repo.UpdateUser([]User{
+			{
+				Id:    "1",
+				Name:  "Johny",
+				Email: "johny@mail.com",
+			},
+			{
+				Id:    "2",
+				Name:  "Janet",
+				Email: "janet@mail.com",
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("delete user", func(t *testing.T) {
+		err := repo.DeleteUser("1")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
