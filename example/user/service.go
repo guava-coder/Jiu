@@ -12,7 +12,10 @@ type UserService struct {
 }
 
 func NewUserSerivice(r *UserRepository) UserService {
-	return UserService{repo: r}
+	return UserService{
+		repo:           r,
+		responseWriter: nil,
+	}
 }
 
 type Response struct {
@@ -42,10 +45,10 @@ func (serv UserService) GetUsers(w http.ResponseWriter, r *http.Request) (status
 	serv.responseWriter = w
 	users, err := serv.repo.GetUsers()
 	if err == nil {
+		statusCode = serv.printUserJson(users)
+	} else {
 		statusCode = http.StatusNoContent
 		serv.printError(statusCode, err)
-	} else {
-		statusCode = serv.printUserJson(users)
 	}
 	return
 }
@@ -70,6 +73,18 @@ func (serv UserService) GetUserByConditions(w http.ResponseWriter, r *http.Reque
 		handleConditions()
 	} else {
 		statusCode = http.StatusInternalServerError
+		serv.printError(statusCode, err)
+	}
+	return
+}
+
+func (serv UserService) GetUserById(w http.ResponseWriter, r *http.Request) (statusCode int) {
+	serv.responseWriter = w
+	user, err := serv.repo.GetUserById(r.PathValue("id"))
+	if err == nil {
+		statusCode = serv.printUserJson([]User{user})
+	} else {
+		statusCode = http.StatusNotFound
 		serv.printError(statusCode, err)
 	}
 	return
