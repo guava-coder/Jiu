@@ -146,3 +146,16 @@ func (serv UserService) UpdateUser(w http.ResponseWriter, r *http.Request) (stat
 	return
 
 }
+
+func (serv UserService) DeleteUser(w http.ResponseWriter, r *http.Request) (statusCode int) {
+	serv.responseWriter = w
+	err := serv.repo.DeleteUser(r.PathValue("id"))
+	if err == nil {
+		statusCode = http.StatusOK
+		serv.printJsonResponse(statusCode, []byte("User deleted successfully"))
+	} else {
+		statusCode = http.StatusNotFound
+		http.Error(w, err.Error(), statusCode)
+	}
+	return
+}

@@ -41,8 +41,20 @@ func TestUserControllerModifie(t *testing.T) {
 		HandleTestResponse(res, t)
 	})
 	t.Run("test update user", func(t *testing.T) {
-		data := `{"Id":"1","Name":"Johnny","Email":"jhonny@mail.com"}`
+		data := `{"Id":"1","Name":"Johny","Email":"johny@mail.com"}`
 		req, err := http.NewRequest(http.MethodPut, "http://127.0.0.1:8080/user/update", bytes.NewReader([]byte(data)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		client := &http.Client{}
+		res, err := client.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		HandleTestResponse(res, t)
+	})
+	t.Run("test delete user", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodDelete, "http://127.0.0.1:8080/user/2", nil)
 		if err != nil {
 			t.Fatal(err)
 		}
