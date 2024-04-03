@@ -28,20 +28,36 @@ func PrintlnLatency(url string, request func() int) {
 	fmt.Println()
 }
 
-func getPrintMethod(url string) (f func(string, ...interface{})) {
-	f = color.New(color.BgYellow).PrintfFunc()
+func getPrintMethod(url string) func(string, ...interface{}) {
+	var c color.Attribute
 
-	if strings.Contains(url, "GET") {
-		f = color.New(color.BgGreen).PrintfFunc()
+	switch {
+	case strings.Contains(url, "GET"):
+		c = color.BgGreen
+	case strings.Contains(url, "POST"):
+		c = color.BgYellow
+	case strings.Contains(url, "PUT"):
+		c = color.BgMagenta
+	case strings.Contains(url, "DELETE"):
+		c = color.BgRed
+	default:
+		c = color.BgYellow
 	}
-	return
+
+	return color.New(c).PrintfFunc()
 }
 
-func getPrintCode(code int) (f func(string, ...interface{})) {
-	f = color.New(color.FgRed).PrintfFunc()
+func getPrintCode(statusCode int) func(string, ...interface{}) {
+	var colorCode color.Attribute
 
-	if code >= 200 && code < 300 {
-		f = color.New(color.FgGreen).PrintfFunc()
+	switch {
+	case statusCode >= 200 && statusCode < 300:
+		colorCode = color.FgGreen
+	case statusCode >= 300 && statusCode < 400:
+		colorCode = color.FgYellow
+	default:
+		colorCode = color.FgRed
 	}
-	return
+
+	return color.New(colorCode).PrintfFunc()
 }

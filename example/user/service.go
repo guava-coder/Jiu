@@ -119,3 +119,30 @@ func (serv UserService) AddUser(w http.ResponseWriter, r *http.Request) (statusC
 	}
 	return
 }
+
+func (serv UserService) UpdateUser(w http.ResponseWriter, r *http.Request) (statusCode int) {
+	serv.responseWriter = w
+
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+
+	handleUpdate := func() {
+		err = serv.repo.UpdateUser([]User{user})
+		if err == nil {
+			statusCode = http.StatusOK
+			serv.printJsonResponse(statusCode, []byte("User updated successfully"))
+		} else {
+			statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), statusCode)
+		}
+	}
+
+	if err == nil {
+		handleUpdate()
+	} else {
+		statusCode = http.StatusInternalServerError
+		http.Error(w, err.Error(), statusCode)
+	}
+	return
+
+}
