@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	to "guavacoder/jiu/tools"
 	"net/http"
 
@@ -33,10 +32,6 @@ func (serv UserService) printUserJson(users []User) (statusCode int) {
 	return
 }
 
-func (serv UserService) printError(statusCode int, err error) {
-	serv.printJsonResponse(statusCode, []byte(fmt.Sprintf("{Error: %s}", err.Error())))
-}
-
 func (serv UserService) printJsonResponse(statusCode int, response []byte) {
 	w := serv.responseWriter
 	w.Header().Add("Content-Type", "application/json")
@@ -51,7 +46,7 @@ func (serv UserService) GetUsers(w http.ResponseWriter, r *http.Request) (status
 		statusCode = serv.printUserJson(users)
 	} else {
 		statusCode = http.StatusNoContent
-		serv.printError(statusCode, err)
+		http.Error(w, err.Error(), statusCode)
 	}
 	return
 }
@@ -69,14 +64,14 @@ func (serv UserService) GetUserByConditions(w http.ResponseWriter, r *http.Reque
 			statusCode = serv.printUserJson(users)
 		} else {
 			statusCode = http.StatusNoContent
-			serv.printError(statusCode, err)
+			http.Error(w, err.Error(), statusCode)
 		}
 	}
 	if err == nil {
 		handleConditions()
 	} else {
 		statusCode = http.StatusInternalServerError
-		serv.printError(statusCode, err)
+		http.Error(w, err.Error(), statusCode)
 	}
 	return
 }
@@ -149,10 +144,20 @@ func (serv UserService) UpdateUser(w http.ResponseWriter, r *http.Request) (stat
 
 func (serv UserService) DeleteUser(w http.ResponseWriter, r *http.Request) (statusCode int) {
 	serv.responseWriter = w
-	err := serv.repo.DeleteUser(r.PathValue("id"))
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	handleDelete := func() {
+		err = serv.repo.DeleteUser(user.Id)
+		if err == nil {
+			statusCode = http.StatusOK
+			serv.printJsonResponse(statusCode, []byte("User deleted successfully"))
+		} else {
+			statusCode = http.StatusNotFound
+			http.Error(w, err.Error(), statusCode)
+		}
+	}
 	if err == nil {
-		statusCode = http.StatusOK
-		serv.printJsonResponse(statusCode, []byte("User deleted successfully"))
+		handleDelete()
 	} else {
 		statusCode = http.StatusNotFound
 		http.Error(w, err.Error(), statusCode)

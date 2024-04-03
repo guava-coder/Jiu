@@ -67,7 +67,7 @@ func (c UserController) updateUser() {
 }
 
 func (c UserController) deleteUser() {
-	url := fmt.Sprintf("DELETE %s{id}", c.prefix)
+	url := fmt.Sprintf("DELETE %sdelete", c.prefix)
 	c.mux.HandleFunc(url, func(w http.ResponseWriter, r *http.Request) {
 		to.PrintlnLatency(url, func() int { return c.service.DeleteUser(w, r) })
 	})
