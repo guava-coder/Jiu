@@ -94,20 +94,13 @@ func (serv UserService) AddUser(w http.ResponseWriter, r *http.Request) (statusC
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 
-	handleAdd := func() {
-		user.Id = uuid.New().String()
-		err := serv.repo.AddUser(user)
-		if err == nil {
-			statusCode = http.StatusOK
-			serv.printJsonResponse(statusCode, []byte("User added successfully"))
-		} else {
-			statusCode = http.StatusBadRequest
-			http.Error(w, err.Error(), statusCode)
-		}
-	}
-
 	if err == nil {
-		handleAdd()
+		statusCode = serv.handleWriter(func() error {
+			user.Id = uuid.New().String()
+			return serv.repo.AddUser(user)
+		},
+			func(statusCode int) { serv.printJsonResponse(statusCode, []byte("User added successfully")) },
+		)
 	} else {
 		statusCode = http.StatusInternalServerError
 		http.Error(w, err.Error(), statusCode)
@@ -121,19 +114,11 @@ func (serv UserService) UpdateUser(w http.ResponseWriter, r *http.Request) (stat
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 
-	handleUpdate := func() {
-		err = serv.repo.UpdateUser([]User{user})
-		if err == nil {
-			statusCode = http.StatusOK
-			serv.printJsonResponse(statusCode, []byte("User updated successfully"))
-		} else {
-			statusCode = http.StatusBadRequest
-			http.Error(w, err.Error(), statusCode)
-		}
-	}
-
 	if err == nil {
-		handleUpdate()
+		statusCode = serv.handleWriter(
+			func() error { return serv.repo.UpdateUser([]User{user}) },
+			func(statusCode int) { serv.printJsonResponse(statusCode, []byte("User updated successfully")) },
+		)
 	} else {
 		statusCode = http.StatusInternalServerError
 		http.Error(w, err.Error(), statusCode)
@@ -146,21 +131,27 @@ func (serv UserService) DeleteUser(w http.ResponseWriter, r *http.Request) (stat
 	serv.responseWriter = w
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
-	handleDelete := func() {
-		err = serv.repo.DeleteUser(user.Id)
-		if err == nil {
-			statusCode = http.StatusOK
-			serv.printJsonResponse(statusCode, []byte("User deleted successfully"))
-		} else {
-			statusCode = http.StatusNotFound
-			http.Error(w, err.Error(), statusCode)
-		}
-	}
+
 	if err == nil {
-		handleDelete()
+		statusCode = serv.handleWriter(
+			func() error { return serv.repo.DeleteUser(user.Id) },
+			func(statusCode int) { serv.printJsonResponse(statusCode, []byte("User deleted successfully")) },
+		)
 	} else {
 		statusCode = http.StatusNotFound
 		http.Error(w, err.Error(), statusCode)
+	}
+	return
+}
+
+func (serv UserService) handleWriter(handleRepo func() error, printOk func(int)) (statusCode int) {
+	err := handleRepo()
+	if err == nil {
+		statusCode = http.StatusOK
+		printOk(statusCode)
+	} else {
+		statusCode = http.StatusNotFound
+		http.Error(serv.responseWriter, err.Error(), statusCode)
 	}
 	return
 }
