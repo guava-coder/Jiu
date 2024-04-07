@@ -20,11 +20,6 @@ func NewUserSerivice(r *UserRepository) UserService {
 	}
 }
 
-type Response struct {
-	StatusCode int
-	Body       []byte
-}
-
 func (serv UserService) printUserJson(users []User) (statusCode int) {
 	statusCode, response := to.MustHandleJsonMarshal(users)
 
@@ -70,7 +65,7 @@ func (serv UserService) GetUserByConditions(w http.ResponseWriter, r *http.Reque
 	if err == nil {
 		handleConditions()
 	} else {
-		statusCode = http.StatusInternalServerError
+		statusCode = http.StatusBadRequest
 		http.Error(w, err.Error(), statusCode)
 	}
 	return
@@ -82,8 +77,20 @@ func (serv UserService) GetUserById(w http.ResponseWriter, r *http.Request) (sta
 	if err == nil {
 		statusCode = serv.printUserJson([]User{user})
 	} else {
-		statusCode = http.StatusNotFound
+		statusCode = http.StatusBadRequest
 		http.Error(w, err.Error(), statusCode)
+	}
+	return
+}
+
+func (serv UserService) handleWriter(handleRepo func() error, printOk func(int), errStatus int) (statusCode int) {
+	err := handleRepo()
+	if err == nil {
+		statusCode = http.StatusOK
+		printOk(statusCode)
+	} else {
+		statusCode = errStatus
+		http.Error(serv.responseWriter, err.Error(), statusCode)
 	}
 	return
 }
@@ -100,9 +107,9 @@ func (serv UserService) AddUser(w http.ResponseWriter, r *http.Request) (statusC
 			return serv.repo.AddUser(user)
 		},
 			func(statusCode int) { serv.printJsonResponse(statusCode, []byte("User added successfully")) },
-		)
+			http.StatusConflict)
 	} else {
-		statusCode = http.StatusInternalServerError
+		statusCode = http.StatusBadRequest
 		http.Error(w, err.Error(), statusCode)
 	}
 	return
@@ -118,9 +125,9 @@ func (serv UserService) UpdateUser(w http.ResponseWriter, r *http.Request) (stat
 		statusCode = serv.handleWriter(
 			func() error { return serv.repo.UpdateUser([]User{user}) },
 			func(statusCode int) { serv.printJsonResponse(statusCode, []byte("User updated successfully")) },
-		)
+			http.StatusNotFound)
 	} else {
-		statusCode = http.StatusInternalServerError
+		statusCode = http.StatusBadRequest
 		http.Error(w, err.Error(), statusCode)
 	}
 	return
@@ -136,22 +143,10 @@ func (serv UserService) DeleteUser(w http.ResponseWriter, r *http.Request) (stat
 		statusCode = serv.handleWriter(
 			func() error { return serv.repo.DeleteUser(user.Id) },
 			func(statusCode int) { serv.printJsonResponse(statusCode, []byte("User deleted successfully")) },
-		)
+			http.StatusNotFound)
 	} else {
-		statusCode = http.StatusNotFound
+		statusCode = http.StatusBadRequest
 		http.Error(w, err.Error(), statusCode)
-	}
-	return
-}
-
-func (serv UserService) handleWriter(handleRepo func() error, printOk func(int)) (statusCode int) {
-	err := handleRepo()
-	if err == nil {
-		statusCode = http.StatusOK
-		printOk(statusCode)
-	} else {
-		statusCode = http.StatusNotFound
-		http.Error(serv.responseWriter, err.Error(), statusCode)
 	}
 	return
 }
